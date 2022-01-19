@@ -21,7 +21,7 @@ reserved = {
 
 tokens = [
     'NUMBER','MINUS',
-    'PLUS','TIMES','DIVIDE',
+    'PLUS','TIMES','DIVIDE','PLUSPLUS',
     'AND','OR',
     'LESSTHAN','BIGGERTHAN','EQEQ','DIF','LESSEQ','GREATEQ',
     'LPAREN','RPAREN','SEMICOLON','EQUAL','MODULO','LBRACE',
@@ -30,6 +30,7 @@ tokens = [
 
 # Tokens
 t_PLUS    = r'\+'
+t_PLUSPLUS    = r'\+\+'
 t_MINUS   = r'-'
 t_TIMES   = r'\*'
 t_DIVIDE  = r'/'
@@ -122,9 +123,15 @@ def p_expression_var(p):
     '''expression : NAME'''
     p[0] = p[1]
 
+
+
+def p_test(p):
+    '''statement : expression'''
+    p[0] = p[1]
+
 def p_incr_var(p):
-    '''expression : NAME PLUS PLUS'''
-    p[0] = (p[2] + p[3], p[1])
+    '''expression : NAME PLUSPLUS'''
+    p[0] = (p[2], p[1])
 
 def p_expression_binop(t):
     '''expression : expression PLUS expression
@@ -183,6 +190,8 @@ def eval(t):
 
 def evalInst(t):
     if t == 'empty' : return
+    if t[0] == '++':
+        vars[t[1]] = vars[t[1]] + 1
     if t[0] == '=':
         vars[t[1]] = eval(t[2])
     if t[0] == 'print' : 
