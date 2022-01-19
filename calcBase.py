@@ -21,7 +21,7 @@ reserved = {
 
 tokens = [
     'NUMBER','MINUS',
-    'PLUS','TIMES','DIVIDE',
+    'PLUS','PLUSPLUS','TIMES','DIVIDE',
     'AND','OR',
     'LESSTHAN','BIGGERTHAN','EQEQ','DIF','LESSEQ','GREATEQ',
     'LPAREN','RPAREN','SEMICOLON','EQUAL','MODULO','LBRACE',
@@ -36,6 +36,7 @@ t_DIVIDE  = r'/'
 t_MODULO  = r'%'
 t_LBRACE = r'{'
 t_RBRACE = r'}'
+t_PLUSPLUS = r'\+\+'
 
 t_AND  = r'&'
 t_OR  = r'\|'
@@ -82,7 +83,7 @@ lex.lex()
 precedence = (
     ('left', 'OR'),
     ('left', 'AND'),
-    ('nonassoc', 'LESSTHAN', 'BIGGERTHAN', 'EQUAL','GREATEQ', 'LESSEQ', 'EQEQ', 'DIF'),
+    ('nonassoc', 'LESSTHAN', 'BIGGERTHAN', 'EQUAL','GREATEQ', 'LESSEQ', 'EQEQ', 'DIF', 'PLUSPLUS'),
     ('left','PLUS','MINUS','MODULO'),
     ('left','TIMES','DIVIDE'),
     )
@@ -123,8 +124,8 @@ def p_expression_var(p):
     p[0] = p[1]
 
 def p_incr_var(p):
-    '''expression : NAME PLUS PLUS'''
-    p[0] = (p[2] + p[3], p[1])
+    '''expression : NAME PLUSPLUS'''
+    p[0] = (p[2], p[1])
 
 def p_expression_binop(t):
     '''expression : expression PLUS expression
