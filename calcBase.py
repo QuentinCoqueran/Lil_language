@@ -83,7 +83,7 @@ lex.lex()
 precedence = (
     ('left', 'OR'),
     ('left', 'AND'),
-    ('nonassoc', 'LESSTHAN', 'BIGGERTHAN', 'EQUAL','GREATEQ', 'LESSEQ', 'EQEQ', 'DIF', 'PLUSPLUS'),
+    ('nonassoc', 'LESSTHAN', 'BIGGERTHAN', 'EQUAL','GREATEQ', 'LESSEQ', 'EQEQ', 'DIF'),
     ('left','PLUS','MINUS','MODULO'),
     ('left','TIMES','DIVIDE'),
     )
@@ -103,7 +103,7 @@ def p_bloc(p):
     else :
         p[0] = ('bloc', p[1], 'None')
 
-def p_statement_expr(p):
+def p_statement_print(p):
     'statement : PRINT LPAREN expression RPAREN'
     p[0] = (p[1], p[3])
 
@@ -118,6 +118,10 @@ def p_statement_while(p):
 def p_statement_var(p):
     '''statement : NAME EQUAL expression'''
     p[0] = ('=', p[1], p[3])
+
+def p_statement_expr(p):
+    '''statement : expression'''
+    p[0] = p[1]
 
 def p_expression_var(p):
     '''expression : NAME'''
@@ -168,7 +172,7 @@ def eval(t):
     if type(t) is int : return t
     if type(t) is str : return vars.get(t)
     if type(t) is tuple : 
-       
+
         if t[0] == '+':     return eval(t[1]) + eval(t[2])
         if t[0] == '*':     return eval(t[1]) * eval(t[2])
         if t[0] == '/':     return eval(t[1]) / eval(t[2])
@@ -184,6 +188,8 @@ def eval(t):
 
 def evalInst(t):
     if t == 'empty' : return
+    if t[0] == '++':
+        vars[t[1]] = vars[t[1]] + 1
     if t[0] == '=':
         vars[t[1]] = eval(t[2])
     if t[0] == 'print' : 
