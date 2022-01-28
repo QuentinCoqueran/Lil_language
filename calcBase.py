@@ -15,6 +15,7 @@ reserved = {
     'while' : 'WHILE',
     'for'    : 'FOR',
     'print' : 'PRINT',
+    'fonctionVoid' : 'FONCVOID',
     'T': 'TRUE',
     'F': 'FALSE',
 }
@@ -24,13 +25,14 @@ tokens = [
     'PLUS','TIMES','DIVIDE','PLUSPLUS',
     'AND','OR',
     'LESSTHAN','BIGGERTHAN','EQEQ','DIF','LESSEQ','GREATEQ',
-    'LPAREN','RPAREN','SEMICOLON','EQUAL','MODULO','LBRACE',
+    'LPAREN','RPAREN','SEMICOLON','EQUAL','PLUSEQ','MODULO','LBRACE','COMMA',
     'NAME','RBRACE',
  ] + list(reserved.values())
 
 # Tokens
 t_PLUS    = r'\+'
 t_PLUSPLUS    = r'\+\+'
+t_PLUSEQ  = r'\+='
 t_MINUS   = r'-'
 t_TIMES   = r'\*'
 t_DIVIDE  = r'/'
@@ -47,6 +49,7 @@ t_BIGGERTHAN  = r'>'
 t_LPAREN  = r'\('
 t_RPAREN  = r'\)'
 t_SEMICOLON  = r';'
+t_COMMA     =r','
 t_EQUAL = r'='
 t_EQEQ = r'=='
 t_GREATEQ = r'>='
@@ -54,6 +57,7 @@ t_LESSEQ  = r'<='
 t_DIF   = r'!='
 
 vars = {}
+funcs = {}
 
 def t_NAME(t):
     r'[a-zA-Z_][a-zA-Z_0-9]*'
@@ -111,10 +115,34 @@ def p_statement_if(p):
     'statement : IF LPAREN expression RPAREN LBRACE bloc RBRACE'
     p[0] = ('if', p[3], p[6])
 
+def p_statement_if_else(p):
+    '''statement : IF LPAREN expression RPAREN LBRACE bloc RBRACE ELSE LBRACE bloc RBRACE'''
+    p[0] = ('if', p[3], p[6], ('else', p[10]))
+
 def p_statement_while(p):
     'statement : WHILE LPAREN expression RPAREN LBRACE bloc RBRACE'
     p[0] = ('while', p[3], p[6])
 
+def p_list(p):
+    '''list : NAME COMMA NAME
+            | list COMMA NAME'''
+    p[0] = p[1] + p[2] + p[3]
+
+def p_statement_call_fonction(p):
+    '''statement : NAME LPAREN RPAREN'''
+    if p[1] in funcs :
+        p[0] = ('fonction', p[1], funcs.get(p[1]))
+
+def p_statement_fonction_void(p):
+    '''statement : FONCVOID NAME LPAREN RPAREN LBRACE bloc RBRACE'''
+    if len(p) == 8:
+        funcs[p[2]] = (p[6])
+    p[0] = ('fonctionVoid', p[2], p[6])
+
+def p_statement_for(p):
+    '''statement : FOR LPAREN NAME EQUAL expression SEMICOLON statement SEMICOLON NAME EQUAL expression PLUS expression SEMICOLON RPAREN LBRACE bloc RBRACE
+                 | FOR LPAREN NAME EQUAL expression SEMICOLON statement SEMICOLON NAME EQUAL expression MINUS expression SEMICOLON RPAREN LBRACE bloc RBRACE'''
+    p[0] = ('for', (p[4],p[3],p[5]), p[7], (p[10],p[9],(p[12],p[11],p[13])), p[17])
 def p_statement_var(p):
     '''statement : NAME EQUAL expression'''
     p[0] = ('=', p[1], p[3])
@@ -128,6 +156,10 @@ def p_expression_var(p):
 def p_test(p):
     '''statement : expression'''
     p[0] = p[1]
+
+def p_expression_pluseq(p):
+    '''expression : NAME PLUSEQ expression'''
+    p[0] = (p[2], p[1], p[3])
 
 def p_incr_var(p):
     '''expression : NAME PLUSPLUS'''
@@ -194,6 +226,8 @@ def evalInst(t):
         vars[t[1]] = vars[t[1]] + 1
     if t[0] == '=':
         vars[t[1]] = eval(t[2])
+    if t[0] == '+=':
+        vars[t[1]] = eval(t[1]) + eval(t[2])
     if t[0] == 'print' : 
         print('CALC>',eval(t[1]))
     if t[0] == 'bloc' : 
@@ -202,9 +236,17 @@ def evalInst(t):
     if t[0] == 'if' :
         if eval(t[1]) == True :
             evalInst(t[2])
+        elif eval(t[1]) == False and t[3][0] == 'else':
+            evalInst(t[3][1])
     if t[0] == 'while' :
         while(eval(t[1])) :
             evalInst(t[2])
-    
+    if t[0] == 'for' :
+        evalInst(t[1])
+        while eval(t[2]):
+            evalInst(t[4])
+            evalInst(t[3])
+    if t[0] == 'fonction' :
+        evalInst(t[2])
 s = input('calc > ')
 yacc.parse(s)
