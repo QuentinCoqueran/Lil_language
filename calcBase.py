@@ -27,7 +27,7 @@ tokens = [
     'AND','OR',
     'LESSTHAN','BIGGERTHAN','EQEQ','DIF','LESSEQ','GREATEQ',
     'LPAREN','RPAREN','SEMICOLON','EQUAL','PLUSEQ','MODULO','LBRACE','COMMA',
-    'NAME','RBRACE',
+    'NAME','RBRACE','QUOTE','STRING',
  ] + list(reserved.values())
 
 # Tokens
@@ -40,6 +40,7 @@ t_DIVIDE  = r'/'
 t_MODULO  = r'%'
 t_LBRACE = r'{'
 t_RBRACE = r'}'
+t_QUOTE = r'"'
 
 t_AND  = r'&'
 t_OR  = r'\|'
@@ -63,6 +64,11 @@ funcs = {}
 def t_NAME(t):
     r'[a-zA-Z_][a-zA-Z_0-9]*'
     t.type = reserved.get(t.value, 'NAME')
+    return t
+
+def t_STRING(t):
+    r'\"[a-zA-Z_0-9]+\"'
+    t.type = reserved.get(t.value, 'STRING')
     return t
 
 def t_NUMBER(t):
@@ -163,7 +169,8 @@ def p_statement_for(p):
     p[0] = ('for', (p[4],p[3],p[5]), p[7], (p[10],p[9],(p[12],p[11],p[13])), p[17])
 
 def p_statement_var(p):
-    '''statement : NAME EQUAL expression'''
+    '''statement : NAME EQUAL expression
+                | NAME EQUAL STRING'''
     p[0] = ('=', p[1], p[3])
 
 def p_expression_var(p):
@@ -221,7 +228,11 @@ yacc.yacc()
 
 def eval(t):
     if type(t) is int : return t
-    if type(t) is str : return vars.get(t)
+    if type(t) is str : 
+        if t.startswith('\"'):
+           t = t.replace('\"', '')
+           return t
+        return vars.get(t)
     if type(t) is tuple : 
        
         if t[0] == '+':     return eval(t[1]) + eval(t[2])
