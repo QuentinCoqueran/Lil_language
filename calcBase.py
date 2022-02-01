@@ -18,6 +18,7 @@ reserved = {
     'fonctionVoid' : 'FONCVOID',
     'T': 'TRUE',
     'F': 'FALSE',
+    'return': 'RETURN',
 }
 
 tokens = [
@@ -107,9 +108,26 @@ def p_bloc(p):
     else :
         p[0] = ('bloc', p[1], 'None')
 
+def p_out_expr(p):
+    """out : return
+        | bloc"""
+    p[0] = (p[1])
+
+def p_return_expr(p):
+    """return : RETURN SEMICOLON
+        | RETURN expression SEMICOLON"""
+    if len(p) == 4:
+        p[0] = ('return', p[2])
+    else:
+        p[0] = ('return', 'empty')
+
 def p_statement_expr(p):
-    'statement : PRINT LPAREN expression RPAREN'
-    p[0] = (p[1], p[3])
+    '''statement : PRINT LPAREN expression RPAREN
+                | PRINT LPAREN expression COMMA expression RPAREN'''
+    if len(p) == 5:
+        p[0] = (p[1], p[3])
+    else :
+        p[0] = (p[1], p[3], p[5])
 
 def p_statement_if(p):
     'statement : IF LPAREN expression RPAREN LBRACE bloc RBRACE'
@@ -143,6 +161,7 @@ def p_statement_for(p):
     '''statement : FOR LPAREN NAME EQUAL expression SEMICOLON statement SEMICOLON NAME EQUAL expression PLUS expression SEMICOLON RPAREN LBRACE bloc RBRACE
                  | FOR LPAREN NAME EQUAL expression SEMICOLON statement SEMICOLON NAME EQUAL expression MINUS expression SEMICOLON RPAREN LBRACE bloc RBRACE'''
     p[0] = ('for', (p[4],p[3],p[5]), p[7], (p[10],p[9],(p[12],p[11],p[13])), p[17])
+
 def p_statement_var(p):
     '''statement : NAME EQUAL expression'''
     p[0] = ('=', p[1], p[3])
@@ -150,8 +169,6 @@ def p_statement_var(p):
 def p_expression_var(p):
     '''expression : NAME'''
     p[0] = p[1]
-
-
 
 def p_test(p):
     '''statement : expression'''
@@ -229,7 +246,10 @@ def evalInst(t):
     if t[0] == '+=':
         vars[t[1]] = eval(t[1]) + eval(t[2])
     if t[0] == 'print' : 
-        print('CALC>',eval(t[1]))
+        if(len(t) > 2):
+            print('CALC>',eval(t[1]), eval(t[2]))
+        else :
+            print('CALC>',eval(t[1]))
     if t[0] == 'bloc' : 
         evalInst(t[1])
         evalInst(t[2])
