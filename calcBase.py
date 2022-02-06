@@ -144,9 +144,12 @@ def p_return_expr(p):
 
 def p_statement_print(p):
     '''statement : PRINT LPAREN expression RPAREN
+                | PRINT LPAREN NAME LBRACKET expression RBRACKET RPAREN
                 | PRINT LPAREN expression COMMA expression RPAREN'''
     if len(p) == 5:
         p[0] = (p[1], p[3])
+    if p[4] == '[':
+        p[0] = (p[1], p[3], p[4], p[5])
     else :
         p[0] = (p[1], p[3], p[5])
 
@@ -315,12 +318,13 @@ def evalInst(t):
             tabs[t[1]].append(0)
     if t[0] == 'tab':
         tabs[t[1][0]][t[2]] = t[3]
-        print(tabs[t[1]])
     if t[0] == '=':
         vars[t[1]] = eval(t[2])
     if t[0] == '+=':
         vars[t[1]] = eval(t[1]) + eval(t[2])
-    if t[0] == 'print': 
+    if t[0] == 'print':
+        if t[2] == '[':
+            print('CALC>', tabs[t[1][0][t[3]]])
         if(len(t) > 2):
             print('CALC>',eval(t[1]), eval(t[2]))
         else :
