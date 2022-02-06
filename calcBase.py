@@ -324,8 +324,8 @@ def evalInst(t):
         vars[t[1]] = eval(t[1]) + eval(t[2])
     if t[0] == 'print':
         if t[2] == '[':
-            print('CALC>', tabs[t[1][0][t[3]]])
-        if(len(t) > 2):
+            print('CALC>', tabs[t[1][0]][t[3]])
+        if(len(t) > 2 and t[2] != '['):
             print('CALC>',eval(t[1]), eval(t[2]))
         else :
             print('CALC>',eval(t[1]))
