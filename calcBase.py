@@ -203,10 +203,12 @@ def p_statement_for(p):
 
 
 def p_statement_var(p):
-    '''statement : NAME EQUAL expression
-                | NAME EQUAL STRING'''
+    '''statement : NAME EQUAL expression'''
     p[0] = ('=', p[1], p[3])
 
+def p_string_expr(p):
+    '''expression : STRING'''
+    p[0] = p[1]
 
 def p_statement_tab(p):
     'statement : NAME LBRACKET expression RBRACKET EQUAL expression'
@@ -291,7 +293,14 @@ def eval(t):
            return t
         return vars.get(t)
     if type(t) is tuple : 
-        if t[0] == '+':     return eval(t[1]) + eval(t[2])
+        if t[0] == '+':
+            print(type(eval(t[1])))
+            print(type(eval(t[2])))
+            print(type(eval(t[1])) == type(eval(t[2])))
+            if type(eval(t[1])) == type(eval((t[2]))):
+                return eval(t[1]) + eval(t[2])
+            else:
+                raise AttributeError('you cannot add/concatenate variables of different type')
         if t[0] == '*':     return eval(t[1]) * eval(t[2])
         if t[0] == '/':     return eval(t[1]) / eval(t[2])
         if t[0] == '-':     return eval(t[1]) - eval(t[2])
