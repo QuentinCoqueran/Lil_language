@@ -27,7 +27,7 @@ tokens = [
     'AND','OR',
     'LESSTHAN','BIGGERTHAN','EQEQ','DIF','LESSEQ','GREATEQ',
     'LPAREN','RPAREN','SEMICOLON','EQUAL','PLUSEQ','MODULO','LBRACE','COMMA',
-    'NAME','RBRACE','QUOTE','STRING',
+    'NAME','RBRACE','QUOTE','STRING','LBRACKET','RBRACKET',
  ] + list(reserved.values())
 
 # Tokens
@@ -41,6 +41,8 @@ t_MODULO  = r'%'
 t_LBRACE = r'{'
 t_RBRACE = r'}'
 t_QUOTE = r'"'
+t_LBRACKET = r'\['
+t_RBRACKET = r'\]'
 
 t_AND  = r'&'
 t_OR  = r'\|'
@@ -60,6 +62,7 @@ t_DIF   = r'!='
 
 vars = {}
 funcs = {}
+tabs = {}
 
 def t_NAME(t):
     r'[a-zA-Z_][a-zA-Z_0-9]*'
@@ -173,6 +176,14 @@ def p_statement_var(p):
                 | NAME EQUAL STRING'''
     p[0] = ('=', p[1], p[3])
 
+def p_statement_tab(p):
+    'statement : NAME LBRACKET expression RBRACKET EQUAL expression'
+    p[0] = ('tab', p[1], p[3], p[6])
+
+def p_create_tab(p):
+    'statement : NAME LBRACKET expression RBRACKET'
+    p[0] = ('createtab', p[1], p[3])
+
 def p_expression_var(p):
     '''expression : NAME'''
     p[0] = p[1]
@@ -252,32 +263,40 @@ def evalInst(t):
     if t == 'empty' : return
     if t[0] == '++':
         vars[t[1]] = vars[t[1]] + 1
+    if t[0] == 'createtab':
+        tabs[t[1]] = list()
+        for i in range(t[2]):
+            tabs[t[1]].append(0)
+    if t[0] == 'tab':
+        tabs[t[1][0]][t[2]] = t[3]
+        print(tabs[t[1]])
     if t[0] == '=':
         vars[t[1]] = eval(t[2])
     if t[0] == '+=':
         vars[t[1]] = eval(t[1]) + eval(t[2])
-    if t[0] == 'print' : 
+    if t[0] == 'print': 
         if(len(t) > 2):
             print('CALC>',eval(t[1]), eval(t[2]))
         else :
             print('CALC>',eval(t[1]))
-    if t[0] == 'bloc' : 
+    if t[0] == 'bloc': 
         evalInst(t[1])
         evalInst(t[2])
-    if t[0] == 'if' :
-        if eval(t[1]) == True :
+    if t[0] == 'if':
+        if eval(t[1]) == True:
             evalInst(t[2])
         elif eval(t[1]) == False and t[3][0] == 'else':
             evalInst(t[3][1])
-    if t[0] == 'while' :
-        while(eval(t[1])) :
+    if t[0] == 'while':
+        while(eval(t[1])):
             evalInst(t[2])
-    if t[0] == 'for' :
+    if t[0] == 'for':
         evalInst(t[1])
         while eval(t[2]):
             evalInst(t[4])
             evalInst(t[3])
-    if t[0] == 'fonction' :
+    if t[0] == 'fonction':
         evalInst(t[2])
+
 s = input('calc > ')
 yacc.parse(s)
