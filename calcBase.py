@@ -128,6 +128,7 @@ def p_bloc(p):
     else:
         p[0] = ('bloc', p[1], 'None')
 
+
 def p_out_expr(p):
     """out : return
         | bloc"""
@@ -141,7 +142,7 @@ def p_return_expr(p):
     else:
         p[0] = ('return', 'empty')
 
-def p_statement_expr(p):
+def p_statement_print(p):
     '''statement : PRINT LPAREN expression RPAREN
                 | PRINT LPAREN expression COMMA expression RPAREN'''
     if len(p) == 5:
@@ -206,6 +207,7 @@ def p_statement_var(p):
                 | NAME EQUAL STRING'''
     p[0] = ('=', p[1], p[3])
 
+
 def p_statement_tab(p):
     'statement : NAME LBRACKET expression RBRACKET EQUAL expression'
     p[0] = ('tab', p[1], p[3], p[6])
@@ -214,12 +216,13 @@ def p_create_tab(p):
     'statement : NAME LBRACKET expression RBRACKET'
     p[0] = ('createtab', p[1], p[3])
 
+
 def p_expression_var(p):
     '''expression : NAME'''
     p[0] = p[1]
 
     
-def p_test(p):
+def p_statement_expr(p):
     '''statement : expression'''
     p[0] = p[1]
 
@@ -232,7 +235,7 @@ def p_expression_pluseq(p):
 def p_incr_var(p):
     '''expression : NAME PLUSPLUS'''
     p[0] = (p[2], p[1])
-
+    
 
 def p_expression_binop(t):
     '''expression : expression PLUS expression
