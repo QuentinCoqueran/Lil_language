@@ -31,7 +31,6 @@ tokens = [
     'NAME','RBRACE','QUOTE','STRING','LBRACKET','RBRACKET',
  ] + list(reserved.values())
 
-
 # Tokens
 t_PLUS = r'\+'
 t_PLUSPLUS = r'\+\+'
@@ -77,27 +76,22 @@ def t_STRING(t):
     r'\"[a-zA-Z_][a-zA-Z_0-9 ]*\"'
     t.type = reserved.get(t.value, 'STRING')
     return t
-  
 
 def t_NUMBER(t):
     r'\d+'
     t.value = int(t.value)
     return t
 
-
 # Ignored characters
 t_ignore = " \t"
-
 
 def t_newline(t):
     r'\n+'
     t.lexer.lineno += t.value.count("\n")
 
-
 def t_error(t):
     print("Illegal character '%s'" % t.value[0])
     t.lexer.skip(1)
-
 
 # Build the lexer
 import ply.lex as lex
@@ -111,7 +105,6 @@ precedence = (
     ('left', 'PLUS', 'MINUS', 'MODULO'),
     ('left', 'TIMES', 'DIVIDE'),
 )
-
 
 def p_start(p):
     'start : bloc'
