@@ -204,7 +204,6 @@ def p_list_param(p):
     '''listparam : NAME
                  | NAME COMMA listparam'''
     p[0] = ('listparam', p[1])
-    print(p[1])
 
 def p_statement_for(p):
     '''statement : FOR LPAREN NAME EQUAL expression SEMICOLON statement SEMICOLON NAME EQUAL expression PLUS expression SEMICOLON RPAREN LBRACE bloc RBRACE
@@ -212,14 +211,13 @@ def p_statement_for(p):
 
     p[0] = ('for', (p[4], p[3], p[5]), p[7], (p[10], p[9], (p[12], p[11], p[13])), p[17])
 
-
 def p_statement_var(p):
     '''statement : NAME EQUAL expression
                 | NAME EQUAL STRING'''
     p[0] = ('=', p[1], p[3])
 
 def p_statement_expr_tab(p):
-    'statement : NAME LBRACKET expression RBRACKET EGAL expression'
+    'statement : NAME LBRACKET expression RBRACKET EQUAL expression'
     p[0] = (p[5],p[2],p[1],p[6],p[3])
 
 def p_create_tab(p):
@@ -233,22 +231,18 @@ def p_expression_tab(p):
 def p_expression_var(p):
     '''expression : NAME'''
     p[0] = p[1]
-
     
 def p_statement_expr(p):
     '''statement : expression'''
     p[0] = p[1]
 
-
 def p_expression_pluseq(p):
     '''expression : NAME PLUSEQ expression'''
     p[0] = (p[2], p[1], p[3])
 
-
 def p_incr_var(p):
     '''expression : NAME PLUSPLUS'''
     p[0] = (p[2], p[1])
-    
 
 def p_expression_binop(t):
     '''expression : expression PLUS expression
@@ -267,16 +261,13 @@ def p_expression_binop(t):
                 | expression DIVIDE expression'''
     t[0] = (t[2], t[1], t[3])
 
-
 def p_expression_group(p):
     'expression : LPAREN expression RPAREN'
     p[0] = p[2]
 
-
 def p_expression_number(p):
     'expression : NUMBER'
     p[0] = p[1]
-
 
 def p_expression_bool(p):
     '''expression : TRUE
@@ -286,15 +277,12 @@ def p_expression_bool(p):
     else:
         p[0] = False
 
-
 def p_error(p):
     print("Syntax error at '%s'" % p.value)
-
 
 import ply.yacc as yacc
 
 yacc.yacc()
-
 
 def eval(t):
     if type(t) is int : return t
@@ -315,8 +303,9 @@ def eval(t):
         if t[0] == '==':     return eval(t[1]) == eval(t[2])
         if t[0] == '!=':     return eval(t[1]) != eval(t[2])
         if t[0] == '%':     return eval(t[1]) % eval(t[2])
+        if t[0] in tabs:
+            return tabs[t[0][0]][eval(t[1])]
     return 'UNK'
-
 
 def evalInst(t):
     if t == 'empty': return
@@ -328,15 +317,10 @@ def evalInst(t):
             tabs[t[1]] = list()
         for i in range(init_index):
             tabs[t[1]].append(0)
-        print(tabs)
-
     if t[0] == '=' and t[1] != '[':
         vars[t[1]] = eval(t[2])
-
     if t[0] == '=' and t[1] == '[':
         tabs[t[2][0]][t[4]]=(t[3])
-        print(tabs)
-    
     if t[0] == '+=':
         vars[t[1]] = eval(t[1]) + eval(t[2])
     if t[0] == 'print':
@@ -386,7 +370,6 @@ def evalInst(t):
             waitingvar.clear()
     if t[0] == 'listparam':
         waitingvar.append(t[1])
-        print(waitingvar)
     if t[0] == 'listaffect':
         waitingvar.append(eval(t[1]))
 
