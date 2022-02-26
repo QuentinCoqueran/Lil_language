@@ -218,13 +218,17 @@ def p_statement_var(p):
                 | NAME EQUAL STRING'''
     p[0] = ('=', p[1], p[3])
 
-def p_statement_tab(p):
-    'statement : NAME LBRACKET expression RBRACKET EQUAL expression'
-    p[0] = ('tab', p[1], p[3], p[6])
+def p_statement_expr_tab(p):
+    'statement : NAME LBRACKET expression RBRACKET EGAL expression'
+    p[0] = (p[5],p[2],p[1],p[6],p[3])
 
 def p_create_tab(p):
     'statement : NAME LBRACKET expression RBRACKET'
-    p[0] = ('createtab', p[1], p[3])
+    p[0] = (p[2], p[1], p[3])
+
+def p_expression_tab(p):
+    'expression : NAME LBRACKET expression RBRACKET'
+    p[0] = (p[1], p[3])
 
 def p_expression_var(p):
     '''expression : NAME'''
@@ -318,15 +322,21 @@ def evalInst(t):
     if t == 'empty': return
     if t[0] == '++':
         vars[t[1]] = vars[t[1]] + 1
-    if t[0] == 'createtab':
-        tabs[t[1]] = list()
-        for i in range(t[2]):
+    if t[0] == '[':
+        init_index = int(eval(t[2]))
+        if t[1] not in tabs:
+            tabs[t[1]] = list()
+        for i in range(init_index):
             tabs[t[1]].append(0)
-    if t[0] == 'tab':
-        tabs[t[1][0]][t[2]] = t[3]
-        #print(tabs[t[1]])
-    if t[0] == '=':
+        print(tabs)
+
+    if t[0] == '=' and t[1] != '[':
         vars[t[1]] = eval(t[2])
+
+    if t[0] == '=' and t[1] == '[':
+        tabs[t[2][0]][t[4]]=(t[3])
+        print(tabs)
+    
     if t[0] == '+=':
         vars[t[1]] = eval(t[1]) + eval(t[2])
     if t[0] == 'print':
