@@ -16,6 +16,7 @@ reserved = {
     'for': 'FOR',
     'print': 'PRINT',
     'fonctionVoid': 'FONCVOID',
+    'fonctionValue': 'FONCVALUE',
     'T': 'TRUE',
     'F': 'FALSE',
     'return': 'RETURN',
@@ -73,7 +74,7 @@ def t_NAME(t):
     return t
 
 def t_STRING(t):
-    r'\"[a-zA-Z_0-9]+\"'
+    r'\"[a-zA-Z_][a-zA-Z_0-9 ]*\"'
     t.type = reserved.get(t.value, 'STRING')
     return t
   
@@ -116,9 +117,8 @@ def p_start(p):
     'start : bloc'
     p[0] = ('start', p[1])
     print('Arbre de dérivation = ', p[0])
-    printTreeGraph(p[1])
+    #printTreeGraph(p[1])
     evalInst(p[1])
-
 
 def p_bloc(p):
     '''bloc : bloc statement SEMICOLON
@@ -128,10 +128,11 @@ def p_bloc(p):
     else:
         p[0] = ('bloc', p[1], 'None')
 
-
 def p_out_expr(p):
-    """out : return
-        | bloc"""
+    """out : bloc return
+            | return
+            | return bloc
+            | bloc return bloc"""
     p[0] = (p[1])
 
 def p_return_expr(p):
@@ -189,6 +190,16 @@ def p_statement_fonction_void(p):
         func[p[2]] = p[7]
         p[0] = ('fonctionVoid', p[2], p[7], p[4])
 
+def p_statement_fonction_value(p):
+    '''statement : FONCVALUE NAME LPAREN RPAREN LBRACE out RBRACE
+                 | FONCVALUE NAME LPAREN listparam RPAREN LBRACE out RBRACE'''
+    if len(p) == 8:
+        func[p[2]] = p[6]
+        p[0] = ('fonctionValue', p[2], p[6])
+    elif len(p) == 9:
+        func[p[2]] = p[7]
+        p[0] = ('fonctionValue', p[2], p[7], p[4])
+
 def p_list_param(p):
     '''listparam : NAME
                  | NAME COMMA listparam'''
@@ -207,7 +218,6 @@ def p_statement_var(p):
                 | NAME EQUAL STRING'''
     p[0] = ('=', p[1], p[3])
 
-
 def p_statement_tab(p):
     'statement : NAME LBRACKET expression RBRACKET EQUAL expression'
     p[0] = ('tab', p[1], p[3], p[6])
@@ -215,7 +225,6 @@ def p_statement_tab(p):
 def p_create_tab(p):
     'statement : NAME LBRACKET expression RBRACKET'
     p[0] = ('createtab', p[1], p[3])
-
 
 def p_expression_var(p):
     '''expression : NAME'''
@@ -315,12 +324,12 @@ def evalInst(t):
             tabs[t[1]].append(0)
     if t[0] == 'tab':
         tabs[t[1][0]][t[2]] = t[3]
-        print(tabs[t[1]])
+        #print(tabs[t[1]])
     if t[0] == '=':
         vars[t[1]] = eval(t[2])
     if t[0] == '+=':
         vars[t[1]] = eval(t[1]) + eval(t[2])
-    if t[0] == 'print': 
+    if t[0] == 'print':
         if(len(t) > 2):
             print('CALC>',eval(t[1]), eval(t[2]))
         else :
@@ -350,6 +359,14 @@ def evalInst(t):
                 vars[funcvar[t[1]][k]] = waitingvar[k]
             evalInst(t[2])
     if t[0] == 'fonctionVoid':
+        if len(t) > 3:
+            evalInst(t[3])
+            tpl = ()
+            for var in waitingvar:
+                tpl = tpl + (var,)
+            funcvar[t[1]] = tpl
+            waitingvar.clear()
+    if t[0] == 'fonctionValue':
         if len(t) > 3:
             evalInst(t[3])
             tpl = ()
